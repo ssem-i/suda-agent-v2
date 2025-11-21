@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">hansung-suda-agent</string>
+    <string name="conversation_hint">음성 대화를 시작하려면 아래 버튼을 눌러주세요.</string>
+    <string name="initializing">초기화 중...</string>
+    <string name="start_listening">음성 인식 시작</string>
+    <string name="stop_listening">음성 인식 중지</string>
+    <string name="stt_running">음성 인식 중...</string>
+    <string name="llm_running">응답 생성 중...</string>
+    <string name="tts_running">음성 합성 중...</string>
+    <string name="speaking">말하는 중...</string>
+</resources>

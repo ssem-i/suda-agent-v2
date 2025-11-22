@@ -484,7 +484,78 @@ class ConversationService(
             launch(Dispatchers.IO) { sendLlmText(response, lastLlmLatencyMs.toFloat()) }
             var llmResponseList = LLMResponseParser.llmResponseParse(response)
             Log.d(TAG, "LLM Response List: $llmResponseList")
-            var ttsText = getSimpleTtsText(llmResponseList[0].token, llmResponseList[0].parameters)
+            // var ttsText = getSimpleTtsText(llmResponseList[0].token, llmResponseList[0].parameters)
+
+            val token = llmResponseList[0].token
+            val params = llmResponseList[0].parameters
+
+            val ttsText = when (token) {
+
+                "<maum_0>" -> {
+                    val title = params["title"] ?: "해당 도서"
+                    // val author = params["author"] ?: ""
+                    val location = params["location"]
+
+                    if (location.isNullOrBlank()) {
+                        // 위치 없음
+                        "위치를 찾을 수 없습니다."
+                    } else {
+                        // 위치 있음
+                        "${title}는 ${location}에 있습니다."
+                    }
+                }
+
+                "<maum_1>" -> {
+                    "이번 달 인기도서는 해커스 토익과 혼공 씨언어 그리고 수학하자입니다"
+                }
+
+                "<maum_2>" -> {
+                    val mood = params["mood"] ?: ""
+
+                    when (mood) {
+                        "1" -> "톤 텔레헨 저자의 고슴도치의 소원 추천드립니다"
+                        "2" -> "최재천 저자의 최재천의 공부 추천드립니다"
+                        "3" -> "장석훈 저자의 생각의 말들 추천드립니다"
+                        else -> "사용자님의 취향을 분석하여 도서를 추천해드릴게요"
+                    }
+                }
+
+                "<maum_3>" -> {
+                    "운영 시간은 오전 9시 부터 밤 9시 까지입니다"
+                }
+
+                "<maum_4>" -> {
+                    // borrower 값에 따라 안내
+                    when (params["borrower"]) {
+                        "1" -> "고길동님의 반납 예정일은 다음주 화요일입니다"
+                        "2" -> "박정자님의 반납 예정일은 다음주 수요일입니다"
+                        "3" -> "도우너님의 반납 예정일은 다음주 목요일입니다"
+                        else -> "반납 예정일 정보를 찾을 수 없습니다."
+                    }
+                }
+
+                "<maum_5>" -> "현재 집중열람실 잔여좌석은 21 석입니다"
+
+                "<maum_6>" -> {
+                    //if (numOfSeat<30) {
+                    //    numOfSeat += 1
+                        "퇴실 처리를 완료했습니다"
+                    //}
+                    //else if (numOfSeat == 30) {
+                    //    "퇴실 가능한 좌석이 없습니다"
+                    //}
+                    //else {
+                    //    "퇴실 가능한 좌석이 없습니다"
+                    //}
+                }
+
+                "<maum_7>" -> "캡스 호출이 완료되었습니다"
+
+                else -> {
+                    "요청을 이해하지 못했습니다."
+                }
+            }
+
             Log.d(TAG, "TTS Text: $ttsText")
 
             handleEvent(Event.LlmDone(ttsText))

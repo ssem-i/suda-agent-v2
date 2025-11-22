@@ -44,6 +44,8 @@ import com.suda.agent.core.IpConfig
 class ConversationService(
     private val context: Context
 ) {
+
+    private var voiceHttpServer: VoiceHttpServer? = null //  추가
     private val TAG = ConversationService::class.simpleName
 
     private val httpClient: OkHttpClient by lazy {
@@ -141,6 +143,10 @@ class ConversationService(
             //     val wavFiles = files.filter { file -> file.contains(".wav") }
             //     Log.d(TAG, "wavFiles : $wavFiles")
             // }
+
+            // 🔹 HTTP 서버 시작
+            startHttpServer()
+
         } catch (e: Exception) {
             Log.e(TAG, "Initialization failed", e)
             updateNotification("Initialization failed: ${e.message}")
@@ -419,7 +425,17 @@ class ConversationService(
         Log.d(TAG, "Cleaning up ConversationService")
         stopTTS()
         vadManager.release()
-        
+
+        // HTTP 서버 정리 추가
+        try {
+            voiceHttpServer?.stop()
+            Log.d(TAG, "VoiceHttpServer stopped")
+        } catch (e: Exception) {
+            Log.w(TAG, "Error stopping VoiceHttpServer", e)
+        }
+        voiceHttpServer = null
+
+
         // TTS 해제
         tts?.release()
         tts = null
@@ -832,4 +848,30 @@ class ConversationService(
         object UserStop : Event()
         data class SystemError(val error: String) : Event()
     }
+
+
+    // 함수 추가
+    private fun startHttpServer() {
+        if (voiceHttpServer != null) return
+
+        voiceHttpServer = VoiceHttpServer(
+            onStartStt = {
+                Log.d(TAG, "[HTTP] /start-stt -> MicPressed")
+                handleEvent(Event.MicPressed)
+            },
+            onStopStt = {
+                Log.d(TAG, "[HTTP] /stop-stt -> UserStop + stopTTS")
+                stopTTS()
+                handleEvent(Event.UserStop)
+            }
+        )
+
+        try {
+            voiceHttpServer?.start()
+            Log.d(TAG, "VoiceHttpServer started on port 8080")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start VoiceHttpServer", e)
+        }
+    }
+
 }
